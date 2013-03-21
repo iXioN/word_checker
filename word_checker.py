@@ -1,14 +1,12 @@
 #/usr/bin/env python
-
-#  word_check.py
-#  word_check
+# -*- coding: utf-8 -*-
+#  word_checker.py
+#  WordChecker
 #  
-#  Created by Antonin Lacombe on 2013-03-20.
+#  Created by Antonin Lacombe on 2013-03-21.
 #  Copyright 2013 Antonin Lacombe. All rights reserved.
 # 
-import sys
 import os.path
-
 
 class BaseWordMatcher(object):
     """A base matcher class"""
@@ -22,7 +20,8 @@ class BaseWordMatcher(object):
         should always return a string if found or None 
         """
         raise NotImplementedError
-        
+
+  
 class EqualMatcher(BaseWordMatcher):
     def match(self, query):
         return query if query in self.word_set else None
@@ -30,6 +29,7 @@ class EqualMatcher(BaseWordMatcher):
 #TODO : RepeatedLettersMatcher jjoobbb" => "job"
 #TODO : IncorrectVowelMatcher: "weke" => "wake"
 #TODO : RepeatedLettersAndIncorrectVowelMatcher: CUNsperrICY" => "conspiracy""
+
 
 class WordChecker(object):
     """docstring for WordChecker"""
@@ -71,8 +71,7 @@ class WordChecker(object):
                     print result
                     break
                 print "NO SUGGESTION"
-
-            
+                 
 if __name__ == "__main__":
     try:
         word_checker = WordChecker()
