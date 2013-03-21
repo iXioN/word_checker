@@ -39,31 +39,44 @@ class SimpleCheckerTestCase(unittest.TestCase):
     def test_repeated_letters_matcher(self):
         """
         given any string in the dict
-        when i try to match diferent queries with the repeated letters matcher
+        when i try to match different queries with the repeated letters matcher
         then i get the word
         """
-        equal_matcher = word_checker.RepeatedLettersMatcher(self.word_set)
+        matcher = word_checker.RepeatedLettersMatcher(self.word_set)
         matching_dict = {
                 'jjoooob':'job',
                 'sheeeeep':'sheep',
         }
         for query in matching_dict.iterkeys():
-            self.assertEquals(equal_matcher.match(query), matching_dict.get(query, None))
+            self.assertEquals(matcher.match(query), matching_dict.get(query, None))
 
     def test_incorrect_vowels_matcher(self):
         """
         given any string in the dict
-        when i try to match diferent queries with the incorrect vowels matcher
+        when i try to match different queries with the incorrect vowels matcher
         then i get the word
         """
-        equal_matcher = word_checker.IncorrectVowelsMatcher(self.word_set)
+        matcher = word_checker.IncorrectVowelsMatcher(self.word_set)
         matching_dict = {
                 'weke':'wake',
                 #'ceisy':'cause' #don't work until the TODO have be made in incorrect vowels mather (replacement of precedents vowels) 
         }
         for query in matching_dict.iterkeys():
-            self.assertEquals(equal_matcher.match(query), matching_dict.get(query, None))
-        
+            self.assertEquals(matcher.match(query), matching_dict.get(query, None))
+            
+    def test_repeated_letters_and_incorrect_vowels_matcher(self):
+        """
+        given any string in the dict
+        when i try to match different queries with the repeated letters and incorrect vowels matcher
+        then i get the word
+        """
+        matcher = word_checker.RepeatedLettersAndIncorrectVowelsMatcher(self.word_set)
+        matching_dict = {
+                'peepple':u'popple',
+                'cunsperricy':'conspiracy',
+        }
+        for query in matching_dict.iterkeys():
+            self.assertEquals(matcher.match(query), matching_dict.get(query, None))
         
     
 if __name__ == '__main__':

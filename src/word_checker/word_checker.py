@@ -57,10 +57,10 @@ class RepeatedLettersMatcher(BaseWordMatcher):
         super(RepeatedLettersMatcher, self).__init__(word_set)
         self.equal_matcher = EqualMatcher(word_set)
         
-    def match(self, query):
-        #return all uniquified word char
-        #then give th result to the equal matcher
-        # AAADONTA, FLYING JIBBBOOM, PEEENT, FREEER, FREEEST, ISHIII, FRILLLESS, WALLLESS, LAPAROHYSTEROSALPINGOOOPHORECTOMY, BRRR, GODDESSSHIP, COUNTESSSHIP, DUCHESSSHIP, GOVERNESSSHIP, HOSTESSSHIP, VERTUUUS, UUULA, and YAYYY.
+    def get_words_to_check(self, query):
+        """
+        return a list of words derived from the query
+        """
         words_to_check = list()
         #search the group with multiple letters, when found create list of word with 1, 2 and 3 time the letter
         for match in self.duplicate_char_re.finditer(query):
@@ -73,6 +73,12 @@ class RepeatedLettersMatcher(BaseWordMatcher):
         #then ad a word where every letter are not repeted
         uniquified_chars = self.duplicate_char_re.findall(query)
         words_to_check.append(u"".join(uniquified_chars))
+        return words_to_check
+        
+    def match(self, query):
+        #return all uniquified word char
+        #then give th result to the equal matcher
+        words_to_check = self.get_words_to_check(query)
         #check every item in words_to_check
         return self.equal_matcher.match_in(words_to_check)
         
@@ -88,8 +94,10 @@ class IncorrectVowelsMatcher(BaseWordMatcher):
         super(IncorrectVowelsMatcher, self).__init__(word_set)
         self.equal_matcher = EqualMatcher(word_set)
     
-    def match(self, query):
-        #iterate over the vowels
+    def get_words_to_check(self, query):
+        """
+        return a list of words derived from the query
+        """
         words_to_check = list()
         #use query as tuple, so we can iterate and use the indexing property
         original_query = query
@@ -104,12 +112,35 @@ class IncorrectVowelsMatcher(BaseWordMatcher):
                         words_to_check.append(new_word) #add new word in the words to check
                  #TODO replace all the local_list_query[:index](precendent char) by vowels combination
                  #for new_vowel in self.vowels:     
+        return words_to_check
+        
+    def match(self, query):
+        words_to_check = self.get_words_to_check(query)
         #check every item in words_to_check
         return self.equal_matcher.match_in(words_to_check)
 
-
+class RepeatedLettersAndIncorrectVowelsMatcher(BaseWordMatcher):
+    """
+    use case "CUNsperrICY" => "conspiracy" or "peepple" => "sheeple"
+    worst case
+    """
+    def __init__(self, word_set):
+        """add matchers instances as property"""
+        super(RepeatedLettersAndIncorrectVowelsMatcher, self).__init__(word_set)
+        self.equal_matcher = EqualMatcher(word_set)
+        self.repeated_letter_matcher = RepeatedLettersMatcher(word_set)
+        self.incorrect_vowels_matcher = IncorrectVowelsMatcher(word_set)
         
-#TODO : RepeatedLettersAndIncorrectVowelsMatcher: "CUNsperrICY" => "conspiracy" "peepple" => "sheeple"
+    def match(self, query):        
+        words = set()
+        first_words = self.repeated_letter_matcher.get_words_to_check(query)
+        for word in first_words:
+            words.add(word)
+            incorrect_vowels_words = self.incorrect_vowels_matcher.get_words_to_check(word)
+            words |= set(tuple(incorrect_vowels_words)) #merge set
+        #check every item in words_to_check
+        return self.equal_matcher.match_in(words)
+
 
 class WordChecker(object):
     """docstring for WordChecker"""
