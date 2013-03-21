@@ -34,25 +34,63 @@ class EqualMatcher(BaseWordMatcher):
 
 class RepeatedLettersMatcher(BaseWordMatcher):
     """
-    RepeatedLettersMatcher jjoobbb" => "job"
+    use case jjoobbb" => "job"
     """
     duplicate_char_re = re.compile(r'(\w)\1*')
     def __init__(self, word_set):
-        """add a property yo the EqualMatcher"""
+        """add EqualMatcher instance as property"""
         super(RepeatedLettersMatcher, self).__init__(word_set)
         self.equal_matcher = EqualMatcher(word_set)
         
     def match(self, query):
-        #http://stackoverflow.com/questions/6306098/regexp-match-repeated-characters
-        #reutrn all uniquified word char
+        #return all uniquified word char
         #then give th result to the equal matcher
         result = u""
-        for match in self.duplicate_char_re.findall(query):
-            result += match
+        matched_chars = self.duplicate_char_re.findall(query)
+        #matched_chars is an array of char, join them in unicode 
+        result = result.join(matched_chars)
         return self.equal_matcher.match(result)
 
-#TODO : IncorrectVowelMatcher: "weke" => "wake"
-#TODO : RepeatedLettersAndIncorrectVowelMatcher: CUNsperrICY" => "conspiracy""
+class IncorrectVowelsMatcher(BaseWordMatcher):
+    """
+    use case "weke" => "wake"
+    vowels http://simple.wikipedia.org/wiki/Vowel
+    this matcher concider 'y' as vowel
+    """
+    vowels = (u'a', u'e', u'i', u'o', u'u', u'y')
+    def __init__(self, word_set):
+        """add EqualMatcher instance as property"""
+        super(IncorrectVowelsMatcher, self).__init__(word_set)
+        self.equal_matcher = EqualMatcher(word_set)
+    
+    def match(self, query):
+        #iterate over the vowels
+        words_to_check = list()
+        #use query as tuple, so we can iterate and use the indexing property
+        original_query = query
+        list_query = list(query)
+        for index, char in enumerate(list_query):
+            if char in self.vowels:
+                for new_vowel in self.vowels:
+                    local_list_query = list(list_query)
+                    local_list_query[index]=new_vowel #replace the vowel in the char list at index
+                    new_word = u"".join(local_list_query)
+                    if new_word not in words_to_check:
+                        words_to_check.append(new_word) #add new word in the words to check
+                 #TODO replace all the local_list_query[:index](precendent char) by vowels combination
+                 #for new_vowel in self.vowels:
+                     
+        #print words_to_check
+        result = None
+        for word in words_to_check:
+            finded_word = self.equal_matcher.match(word)
+            if finded_word:
+                result = finded_word
+                break
+        return result
+
+        
+#TODO : RepeatedLettersAndIncorrectVowelsMatcher: CUNsperrICY" => "conspiracy""
 
 
 class WordChecker(object):
@@ -63,7 +101,7 @@ class WordChecker(object):
         self.word_set = set()
         self.load_dictionary()
         #we declare here the ordered matchers object to use
-        matchers_class = (EqualMatcher, RepeatedLettersMatcher)
+        matchers_class = (EqualMatcher, RepeatedLettersMatcher, IncorrectVowelsMatcher)
         #load the matchers objects into the matchers property
         self.matchers = [matcher_cls(self.word_set) for matcher_cls in matchers_class]
         
