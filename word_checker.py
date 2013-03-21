@@ -10,8 +10,10 @@
 #Idea:
 #   split word_set as into dict_set group by first letters
 #   add cache for matched words
+#   unicode the set data
 
 import os.path
+import re
 
 class BaseWordMatcher(object):
     """A base matcher class"""
@@ -31,10 +33,24 @@ class EqualMatcher(BaseWordMatcher):
         return query if query in self.word_set else None
 
 class RepeatedLettersMatcher(BaseWordMatcher):
+    """
+    RepeatedLettersMatcher jjoobbb" => "job"
+    """
+    duplicate_char_re = re.compile(r'(\w)\1*')
+    def __init__(self, word_set):
+        """add a property yo the EqualMatcher"""
+        super(RepeatedLettersMatcher, self).__init__(word_set)
+        self.equal_matcher = EqualMatcher(word_set)
+        
     def match(self, query):
         #http://stackoverflow.com/questions/6306098/regexp-match-repeated-characters
-        return None
-#TODO : RepeatedLettersMatcher jjoobbb" => "job"
+        #reutrn all uniquified word char
+        #then give th result to the equal matcher
+        result = u""
+        for match in self.duplicate_char_re.findall(query):
+            result += match
+        return self.equal_matcher.match(result)
+
 #TODO : IncorrectVowelMatcher: "weke" => "wake"
 #TODO : RepeatedLettersAndIncorrectVowelMatcher: CUNsperrICY" => "conspiracy""
 
@@ -61,7 +77,7 @@ class WordChecker(object):
         with open(words_list_path,"r") as f:
             for line in f.xreadlines():
                 #clean line and add to the set
-                line = line.replace('\n', '').strip()
+                line = line.replace('\n', '').strip().decode('utf-8')
                 self.word_set.add(line)
         return self.word_set
         
