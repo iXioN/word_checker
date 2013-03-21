@@ -45,7 +45,7 @@ class SimpleCheckerTestCase(unittest.TestCase):
         equal_matcher = word_checker.RepeatedLettersMatcher(self.word_set)
         matching_dict = {
                 'jjoooob':'job',
-                'innsiiiiiideeee':'inside'
+                'sheeeeep':'sheep',
         }
         for query in matching_dict.iterkeys():
             self.assertEquals(equal_matcher.match(query), matching_dict.get(query, None))
@@ -59,7 +59,7 @@ class SimpleCheckerTestCase(unittest.TestCase):
         equal_matcher = word_checker.IncorrectVowelsMatcher(self.word_set)
         matching_dict = {
                 'weke':'wake',
-                #'ceisy':'cause'
+                #'ceisy':'cause' #don't work until the TODO have be made in incorrect vowels mather (replacement of precedents vowels) 
         }
         for query in matching_dict.iterkeys():
             self.assertEquals(equal_matcher.match(query), matching_dict.get(query, None))

@@ -31,6 +31,21 @@ class BaseWordMatcher(object):
 class EqualMatcher(BaseWordMatcher):
     def match(self, query):
         return query if query in self.word_set else None
+        
+        
+    def match_in(self, iterable):
+        """
+        match each item in the iterable
+        exit on first find
+        """
+        result = None
+        for word in iterable:
+            finded_word = self.match(word)
+            if finded_word:
+                result = finded_word
+                break
+        return result
+    
 
 class RepeatedLettersMatcher(BaseWordMatcher):
     """
@@ -45,12 +60,22 @@ class RepeatedLettersMatcher(BaseWordMatcher):
     def match(self, query):
         #return all uniquified word char
         #then give th result to the equal matcher
-        result = u""
-        matched_chars = self.duplicate_char_re.findall(query)
-        #matched_chars is an array of char, join them in unicode 
-        result = result.join(matched_chars)
-        return self.equal_matcher.match(result)
-
+        # AAADONTA, FLYING JIBBBOOM, PEEENT, FREEER, FREEEST, ISHIII, FRILLLESS, WALLLESS, LAPAROHYSTEROSALPINGOOOPHORECTOMY, BRRR, GODDESSSHIP, COUNTESSSHIP, DUCHESSSHIP, GOVERNESSSHIP, HOSTESSSHIP, VERTUUUS, UUULA, and YAYYY.
+        words_to_check = list()
+        #search the group with multiple letters, when found create list of word with 1, 2 and 3 time the letter
+        for match in self.duplicate_char_re.finditer(query):
+            letters = match.group()
+            if len(letters) > 1:
+                #we find a duplicate
+                letter = letters[0]
+                for coef in xrange(1,4):
+                    words_to_check.append(query.replace(letters, letter*coef))
+        #then ad a word where every letter are not repeted
+        uniquified_chars = self.duplicate_char_re.findall(query)
+        words_to_check.append(u"".join(uniquified_chars))
+        #check every item in words_to_check
+        return self.equal_matcher.match_in(words_to_check)
+        
 class IncorrectVowelsMatcher(BaseWordMatcher):
     """
     use case "weke" => "wake"
@@ -78,20 +103,13 @@ class IncorrectVowelsMatcher(BaseWordMatcher):
                     if new_word not in words_to_check:
                         words_to_check.append(new_word) #add new word in the words to check
                  #TODO replace all the local_list_query[:index](precendent char) by vowels combination
-                 #for new_vowel in self.vowels:
-                     
-        #print words_to_check
-        result = None
-        for word in words_to_check:
-            finded_word = self.equal_matcher.match(word)
-            if finded_word:
-                result = finded_word
-                break
-        return result
+                 #for new_vowel in self.vowels:     
+        #check every item in words_to_check
+        return self.equal_matcher.match_in(words_to_check)
+
 
         
-#TODO : RepeatedLettersAndIncorrectVowelsMatcher: CUNsperrICY" => "conspiracy""
-
+#TODO : RepeatedLettersAndIncorrectVowelsMatcher: "CUNsperrICY" => "conspiracy" "peepple" => "sheeple"
 
 class WordChecker(object):
     """docstring for WordChecker"""
