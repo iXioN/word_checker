@@ -21,11 +21,14 @@ class BaseWordMatcher(object):
         """
         raise NotImplementedError
 
-  
 class EqualMatcher(BaseWordMatcher):
     def match(self, query):
         return query if query in self.word_set else None
 
+class RepeatedLettersMatcher(BaseWordMatcher):
+    def match(self, query):
+        #http://stackoverflow.com/questions/6306098/regexp-match-repeated-characters
+        return None
 #TODO : RepeatedLettersMatcher jjoobbb" => "job"
 #TODO : IncorrectVowelMatcher: "weke" => "wake"
 #TODO : RepeatedLettersAndIncorrectVowelMatcher: CUNsperrICY" => "conspiracy""
@@ -39,7 +42,7 @@ class WordChecker(object):
         self.word_set = set()
         self.load_dictionary()
         #we declare here the ordered matchers object to use
-        matchers_class = (EqualMatcher, )
+        matchers_class = (EqualMatcher, RepeatedLettersMatcher)
         #load the matchers objects into the matchers property
         self.matchers = [matcher_cls(self.word_set) for matcher_cls in matchers_class]
         
