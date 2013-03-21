@@ -6,17 +6,23 @@ WordChecker
 
 Install
 -------
-Clone the repository and just launch the installer:
+Clone the repository and just launch the word checker program:
 
-    python word_checker.py
+    python word_checker
 
 It will ask you a word and check the existence of this word in your /usr/share/dict/words by default
+
+you can run the program in virtualenv with:
+
+    source bootstrap
+    python word_checker
+
 
 Tests
 -------
 
-You can run the unit tests with 
+You can run the unit tests with:
 
-    python word_checker_tests.py
+    python word_checker_tests
 
 

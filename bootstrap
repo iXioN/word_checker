@@ -1,0 +1,9 @@
+#!/bin/bash
+export VIRTUALENV_DIRECTORY='venv'
+
+if [ ! -d "$VIRTUALENV_DIRECTORY" ]; then
+    virtualenv $VIRTUALENV_DIRECTORY &&
+    source $VIRTUALENV_DIRECTORY/bin/activate
+else
+    echo "[ERROR] Directory $VIRTUALENV_DIRECTORY already exists!"
+fi
