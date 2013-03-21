@@ -1,9 +1,8 @@
 WordChecker
 ===========
 
-a simple python word checker
+**WordChecker** is simple python word checker,
 
-**WordChecker** is simple python word checker
 
 Install
 -------
@@ -18,6 +17,6 @@ Tests
 
 You can run the unit tests with 
 
-   python word_checker_tests.py
+    python word_checker_tests.py
 
 
