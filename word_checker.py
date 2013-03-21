@@ -6,6 +6,11 @@
 #  Created by Antonin Lacombe on 2013-03-21.
 #  Copyright 2013 Antonin Lacombe. All rights reserved.
 # 
+
+#Idea:
+#   split word_set as into dict_set group by first letters
+#   add cache for matched words
+
 import os.path
 
 class BaseWordMatcher(object):
@@ -68,11 +73,14 @@ class WordChecker(object):
             query_str = query_str.replace('\n', '').strip().lower()
             query = query_str.decode('utf-8')
             #now we will use many strategies to find the word
+            word_find = False
             for matcher in self.matchers:
                 result = matcher.match(query)
                 if result:
                     print result
+                    word_find = True
                     break
+            if not word_find:
                 print "NO SUGGESTION"
                  
 if __name__ == "__main__":
