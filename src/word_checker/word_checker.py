@@ -14,6 +14,7 @@
 
 import os.path
 import re
+import itertools
 
 class BaseWordMatcher(object):
     """A base matcher class"""
@@ -89,6 +90,7 @@ class IncorrectVowelsMatcher(BaseWordMatcher):
     this matcher concider 'y' as vowel
     """
     vowels = (u'a', u'e', u'i', u'o', u'u', u'y')
+    
     def __init__(self, word_set):
         """add EqualMatcher instance as property"""
         super(IncorrectVowelsMatcher, self).__init__(word_set)
@@ -97,21 +99,24 @@ class IncorrectVowelsMatcher(BaseWordMatcher):
     def get_words_to_check(self, query):
         """
         return a list of words derived from the query
+        
+        I use the combiantion of an itertoolt product() and the python string format to generate the word list
         """
-        words_to_check = list()
-        #use query as tuple, so we can iterate and use the indexing property
-        original_query = query
         list_query = list(query)
-        for index, char in enumerate(list_query):
+        vowel_index = 0
+        #search the vowels and replace them by a format marker like {0} {1}...
+        for char_index, char in enumerate(query):
             if char in self.vowels:
-                for new_vowel in self.vowels:
-                    local_list_query = list(list_query)
-                    local_list_query[index]=new_vowel #replace the vowel in the char list at index
-                    new_word = u"".join(local_list_query)
-                    if new_word not in words_to_check:
-                        words_to_check.append(new_word) #add new word in the words to check
-                 #TODO replace all the local_list_query[:index](precendent char) by vowels combination
-                 #for new_vowel in self.vowels:     
+                list_query[char_index]="{%s}" % (vowel_index, )#replace the vowel by a marquer format
+                vowel_index+=1
+        query = u"".join(list_query)#now the query have a format marker instead vowels
+        
+        words_to_check = list()
+        #iter over the product of vowel_index * vowels and apply to the format
+        for possible_vowels in itertools.product(self.vowels, repeat=vowel_index):
+            word  = query.format(*possible_vowels)
+            words_to_check.append(word)
+
         return words_to_check
         
     def match(self, query):
@@ -150,7 +155,7 @@ class WordChecker(object):
         self.word_set = set()
         self.load_dictionary()
         #we declare here the ordered matchers object to use
-        matchers_class = (EqualMatcher, RepeatedLettersMatcher, IncorrectVowelsMatcher)
+        matchers_class = (EqualMatcher, RepeatedLettersMatcher, IncorrectVowelsMatcher, RepeatedLettersAndIncorrectVowelsMatcher)
         #load the matchers objects into the matchers property
         self.matchers = [matcher_cls(self.word_set) for matcher_cls in matchers_class]
         
