@@ -8,9 +8,7 @@
 # 
 
 #Idea:
-#   split word_set as into dict_set group by first letters
 #   add cache for matched words
-#   unicode the set data
 
 import os.path
 import re
@@ -29,10 +27,10 @@ class BaseWordMatcher(object):
         """
         raise NotImplementedError
 
+
 class EqualMatcher(BaseWordMatcher):
     def match(self, query):
         return query if query in self.word_set else None
-        
         
     def match_in(self, iterable):
         """
@@ -83,6 +81,7 @@ class RepeatedLettersMatcher(BaseWordMatcher):
         #check every item in words_to_check
         return self.equal_matcher.match_in(words_to_check)
         
+         
 class IncorrectVowelsMatcher(BaseWordMatcher):
     """
     use case "weke" => "wake"
@@ -110,7 +109,6 @@ class IncorrectVowelsMatcher(BaseWordMatcher):
                 list_query[char_index]="{%s}" % (vowel_index, )#replace the vowel by a marquer format
                 vowel_index+=1
         query = u"".join(list_query)#now the query have a format marker instead vowels
-        
         words_to_check = list()
         #iter over the product of vowel_index * vowels and apply to the format
         for possible_vowels in itertools.product(self.vowels, repeat=vowel_index):
@@ -123,6 +121,7 @@ class IncorrectVowelsMatcher(BaseWordMatcher):
         words_to_check = self.get_words_to_check(query)
         #check every item in words_to_check
         return self.equal_matcher.match_in(words_to_check)
+
 
 class RepeatedLettersAndIncorrectVowelsMatcher(BaseWordMatcher):
     """
@@ -148,16 +147,29 @@ class RepeatedLettersAndIncorrectVowelsMatcher(BaseWordMatcher):
 
 
 class WordChecker(object):
-    """docstring for WordChecker"""
+    """ 
+    word checker base class, 
+    able to :
+        load the word file  with load_dictionary() methode
+        run the matching promb with run() methode 
+    """
     def __init__(self):
         super(WordChecker, self).__init__()
         #start to load the dictionay
         self.word_set = set()
         self.load_dictionary()
         #we declare here the ordered matchers object to use
-        matchers_class = (EqualMatcher, RepeatedLettersMatcher, IncorrectVowelsMatcher, RepeatedLettersAndIncorrectVowelsMatcher)
+        matchers_class = (
+            EqualMatcher, 
+            RepeatedLettersMatcher, 
+            IncorrectVowelsMatcher, 
+            RepeatedLettersAndIncorrectVowelsMatcher
+        )
         #load the matchers objects into the matchers property
         self.matchers = [matcher_cls(self.word_set) for matcher_cls in matchers_class]
+        
+        #cache for already typed words ex: {u'test':'u'test', u'abcdef':None}
+        self.match_cache = {}
         
     def load_dictionary(self, path=None):
         """
@@ -174,22 +186,28 @@ class WordChecker(object):
         return self.word_set
         
     def run(self):
-        """docstring for run"""
+        """the method run by the main"""
         while True:
             query_str = raw_input('> ')
             #cleanify the input_string and decode in utf-8 to avoid error with non-utf-8 char
             query_str = query_str.replace('\n', '').strip().lower()
             query = query_str.decode('utf-8')
-            #now we will use many strategies to find the word
-            word_find = False
-            for matcher in self.matchers:
-                result = matcher.match(query)
-                if result:
-                    print result
-                    word_find = True
-                    break
-            if not word_find:
+            result = None
+            #check if the word was already set in the cache
+            if not query in self.match_cache:
+                #now we will use our matchers strategies to find the word
+                for matcher in self.matchers:
+                    result = matcher.match(query)
+                    if result:
+                        break
+            else:
+                result = self.match_cache.get(query, None)
+            if result:
+                print result
+            else:
                 print "NO SUGGESTION"
+            #set the word in cache
+            self.match_cache[query] = result
                  
 if __name__ == "__main__":
     try:
