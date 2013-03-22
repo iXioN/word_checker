@@ -6,10 +6,6 @@
 #  Created by Antonin Lacombe on 2013-03-21.
 #  Copyright 2013 Antonin Lacombe. All rights reserved.
 # 
-
-#Idea:
-#   add cache for matched words
-
 import os.path
 import sys
 import itertools
@@ -189,7 +185,7 @@ class WordChecker(object):
         matchers_class = (
             EqualMatcher, 
             RepeatedLettersMatcher, 
-            #IncorrectVowelsMatcher, #remove to avoid twiced huge work, this check is done one the next matcher
+            #IncorrectVowelsMatcher, #remove to avoid twiced huge work, this check is done one the ne
             RepeatedLettersAndIncorrectVowelsMatcher,
         )
         #load the matchers objects into the matchers property
@@ -233,7 +229,7 @@ class WordChecker(object):
             if result:
                 print result
             else:
-                print "%s NO SUGGESTION" % query
+                print "NO SUGGESTION"
             #set the word in cache
             self.match_cache[query] = result
                  
@@ -248,4 +244,4 @@ if __name__ == "__main__":
         word_checker = WordChecker()
         word_checker.run()
     except (KeyboardInterrupt, SystemExit):
-        sys.exit(1)
+        sys.exit()

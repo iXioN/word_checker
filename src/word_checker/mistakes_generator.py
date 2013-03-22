@@ -13,7 +13,7 @@ from optparse import OptionParser
 import word_checker
 
 
-class CaseMistaker(object):
+class BaseMistaker(object):
     """A base mistaker class"""
     
     def mistake(self, word):
@@ -24,7 +24,7 @@ class CaseMistaker(object):
         return word
         
         
-class CaseMistaker(object):
+class CaseMistaker(BaseMistaker):
     """A Case mistaker class"""
     def mistake(self, word):
         """
@@ -34,7 +34,7 @@ class CaseMistaker(object):
         return new_word
         
         
-class RepeatedLettersMistaker(object):
+class RepeatedLettersMistaker(BaseMistaker):
     """A letter repeater mistaker class"""
     max_same_duplicate_letter = 3
     max_change_in_same_word = 3
@@ -56,7 +56,7 @@ class RepeatedLettersMistaker(object):
         return u"".join(word_list)
 
 
-class IncorrectVowelsMistaker(object):
+class IncorrectVowelsMistaker(BaseMistaker):
     """
     A incorrrect vowels mistaker class
     vowels http://simple.wikipedia.org/wiki/Vowel
@@ -84,7 +84,7 @@ class IncorrectVowelsMistaker(object):
         return u"".join(word_list)
 
 
-class RepeatedLettersAndIncorrectVowelsAnIncorectCaseMistaker(object):
+class RepeatedLettersAndIncorrectVowelsAnIncorectCaseMistaker(BaseMistaker):
     """
     repeated letters, incorect vowels and case word is generate for the original one
     """
@@ -122,6 +122,8 @@ class MistakesGenerator(object):
     """
     this class load the word file with word_checker.load_dictionary() methode
     then return mustakes work based on random dictionary words
+    
+    the mistaker choice is made with a weighted choice, to speedup the execution    
     """
     def __init__(self, word_dict_path=None):
         super(MistakesGenerator, self).__init__()
@@ -130,10 +132,11 @@ class MistakesGenerator(object):
         #we declare here a list of mistaker class with 
         #(class, distribution wheight)
         self.mistakers = (
+            (BaseMistaker(), 70),
             (CaseMistaker(), 70),
             (RepeatedLettersMistaker(), 50),
-            (IncorrectVowelsMistaker(), 20),
-            (RepeatedLettersAndIncorrectVowelsAnIncorectCaseMistaker(), 10),
+            (IncorrectVowelsMistaker(), 10),
+            (RepeatedLettersAndIncorrectVowelsAnIncorectCaseMistaker(), 5),
         )
     
     def mistake_word(self, word):
@@ -147,15 +150,9 @@ class MistakesGenerator(object):
         """
         iterate over the word_set, apply a mistake transformer and print the word
         """
-        index = 0
         while True:
             for word in self.word_set:
-                #first tour we send only non-mistaken words
-                if index < 1:
-                    print word
-                else:
-                    print self.mistake_word(word)
-            index += 1   
+                print self.mistake_word(word)
 
 if __name__ == "__main__":
     try:
@@ -168,4 +165,4 @@ if __name__ == "__main__":
         mistakes_generator = MistakesGenerator(word_dict_path)
         mistakes_generator.run()
     except (KeyboardInterrupt, SystemExit):
-        sys.exit(1)#shutdown silently
+        sys.exit()
