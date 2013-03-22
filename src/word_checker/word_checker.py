@@ -176,11 +176,6 @@ class RepeatedLettersAndIncorrectVowelsMatcher(BaseWordMatcher):
                         if match:
                             return match
                         already_seen.add(word_changed_vowels)
-                
-            #incorrect_vowels_words = self.incorrect_vowels_matcher.get_words_to_check(word)
-            
-            #words |= set(tuple(incorrect_vowels_words)) #merge set
-        #check every item in words_to_check
         return None
 
 
@@ -198,9 +193,9 @@ class WordChecker(object):
         self.word_set = self.load_dictionary()
         #we declare here the ordered matchers object to use
         matchers_class = (
-            # EqualMatcher, 
-            # RepeatedLettersMatcher, 
-            # IncorrectVowelsMatcher, 
+            EqualMatcher, 
+            RepeatedLettersMatcher, 
+            IncorrectVowelsMatcher, 
             RepeatedLettersAndIncorrectVowelsMatcher,
         )
         #load the matchers objects into the matchers property

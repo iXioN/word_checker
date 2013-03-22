@@ -73,8 +73,9 @@ class SimpleCheckerTestCase(unittest.TestCase):
         """
         matcher = word_checker.RepeatedLettersAndIncorrectVowelsMatcher(self.word_set)
         matching_dict = {
-                'peepple':u'people',
+                'peepple':'popple',
                 'cunsperricy':'conspiracy',
+                'uuunssibveertublu':'insubvertible',
         }
         for query in matching_dict.iterkeys():
             self.assertEquals(matcher.match(query), matching_dict.get(query, None))

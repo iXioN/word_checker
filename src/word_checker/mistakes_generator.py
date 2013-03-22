@@ -12,6 +12,7 @@ import time
 import random
 import word_checker
 
+
 class CaseMistaker(object):
     """A base mistaker class"""
     
@@ -22,6 +23,7 @@ class CaseMistaker(object):
         """
         return word
         
+        
 class CaseMistaker(object):
     """A Case mistaker class"""
     def mistake(self, word):
@@ -30,6 +32,7 @@ class CaseMistaker(object):
         """
         new_word = "".join(random.choice([char.upper(), char ]) for char in word)
         return new_word
+        
         
 class RepeatedLettersMistaker(object):
     """A letter repeater mistaker class"""
@@ -51,6 +54,7 @@ class RepeatedLettersMistaker(object):
             if change_counter >= self.max_change_in_same_word:
                 break
         return u"".join(word_list)
+
 
 class IncorrectVowelsMistaker(object):
     """
@@ -75,9 +79,12 @@ class IncorrectVowelsMistaker(object):
                     word_list[index] = new_vowel
                     change_counter+=1
                 if change_counter >= self.max_change_in_same_word:
+                    import ipdb
+                    ipdb.set_trace()
                     break
                 
         return u"".join(word_list)
+
 
 class RepeatedLettersAndIncorrectVowelsAnIncorectCaseMistaker(object):
     """
@@ -136,12 +143,12 @@ class MistakesGenerator(object):
         while True:
             for word in self.word_set:
                 #first tour we send only non-mistaken words
-                if index < 1:
-                    print word
-                else:
-                    print self.mistake_word(word)
+                # if index < 1:
+                #     print word
+                # else:
+                #     print self.mistake_word(word)
                 #print self.mistake_word(word)
-                #print "%s %s" %(word, self.mistake_word(word)) 
+                print "%s %s" %(word, self.mistake_word(word)) 
             index += 1   
 
 if __name__ == "__main__":
