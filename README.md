@@ -17,6 +17,9 @@ you can run the program in virtualenv with:
     source bootstrap
     python word_checker
 
+you can pipi the mistake_generator with:
+   
+    python mistakes_generator | python word_checker
 
 Tests
 -------

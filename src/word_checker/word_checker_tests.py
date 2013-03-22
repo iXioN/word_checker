@@ -1,10 +1,10 @@
 # !/usr/bin/env python
 # -*- coding: utf-8 -*-
 #  word_checker_tests.py
-#  WordChecker
+#  word_checker
 #  
-#  Created by antonin on 2013-03-21.
-#  Copyright 2013 antonin. All rights reserved.
+#  Created by Antonin Lacombe on 2013-03-21.
+#  Copyright 2013 Antonin Lacombe. All rights reserved.
 # 
 
 import unittest

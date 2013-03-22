@@ -1,7 +1,7 @@
-#/usr/bin/env python
+# !/usr/bin/env python
 # -*- coding: utf-8 -*-
 #  word_checker.py
-#  WordChecker
+#  word_checker
 #  
 #  Created by Antonin Lacombe on 2013-03-21.
 #  Copyright 2013 Antonin Lacombe. All rights reserved.
@@ -11,6 +11,7 @@
 #   add cache for matched words
 
 import os.path
+import sys
 import re
 import itertools
 
@@ -214,4 +215,5 @@ if __name__ == "__main__":
         word_checker = WordChecker()
         word_checker.run()
     except (KeyboardInterrupt, SystemExit):
+        sys.exit(1)
         print "\ngoodbye"
