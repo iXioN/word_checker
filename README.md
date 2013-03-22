@@ -21,6 +21,7 @@ you can pipe the mistake_generator with:
    
     python mistakes_generator | python word_checker	
 or simple run the mistake generator:
+  
 	python mistakes_generator
 
 Tests

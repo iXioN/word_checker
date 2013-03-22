@@ -80,10 +80,16 @@ class MistakesGenerator(object):
         """
         iterate over the word_set, apply a mistake transformer and print the word
         """
+        index = 0
         while True:
             for word in self.word_set:
-                print self.mistake_word(word)
-                #print "%s %s" %(word, self.mistake_word(word))                
+                #first tour we send only non-mistaken words
+                if index < 1:
+                    print word
+                else:
+                    print self.mistake_word(word)
+                #print "%s %s" %(word, self.mistake_word(word)) 
+            index += 1   
 
 if __name__ == "__main__":
     try:
