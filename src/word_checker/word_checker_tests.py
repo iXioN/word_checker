@@ -46,6 +46,7 @@ class SimpleCheckerTestCase(unittest.TestCase):
         matching_dict = {
                 'jjoooob':'job',
                 'sheeeeep':'sheep',
+                'aartillleerry':'artillery',
         }
         for query in matching_dict.iterkeys():
             self.assertEquals(matcher.match(query), matching_dict.get(query, None))

@@ -51,38 +51,39 @@ class RepeatedLettersMatcher(BaseWordMatcher):
     """
     use case jjoobbb" => "job"
     """
-    duplicate_char_re = re.compile(r'(\w)\1*')
     def __init__(self, word_set):
         """add EqualMatcher instance as property"""
         super(RepeatedLettersMatcher, self).__init__(word_set)
         self.equal_matcher = EqualMatcher(word_set)
+        #the english allowed repeted char, lower the string is, faster the computation is
+        self.allowed = (u'abcdefghijklmnpopqrstuvwxyz')
         
+    def recursive_duplicate_search(self, prev, seq):
+        if not seq:
+            return [prev]
+        solutions = self.recursive_duplicate_search(prev + seq[0][0], seq[1:])
+        if seq[0][1]:
+            for coef in xrange(1, 4):
+                solutions += self.recursive_duplicate_search(prev + seq[0][0] * coef, seq[1:])
+        return solutions
+            
     def get_words_to_check(self, query):
         """
         return a list of words derived from the query
         """
-        words_to_check = list()
-        #search the group with multiple letters, when found create list of word with 1, 2 and 3 time the letter
-        for match in self.duplicate_char_re.finditer(query):
-            letters = match.group()
-            if len(letters) > 1:
-                #we find a duplicate
-                letter = letters[0]
-                for coef in xrange(1,4):
-                    words_to_check.append(query.replace(letters, letter*coef))
-        #then ad a word where every letter are not repeted
-        uniquified_chars = self.duplicate_char_re.findall(query)
-        words_to_check.append(u"".join(uniquified_chars))
+        #return all uniquified word char
+        #first start detec the duplicate char
+        group_by_iter = itertools.groupby(query)
+        #make iterable with iterable as (letter, is_duplicate)
+        seq = [(k, len(list(g)) >= 2) for k, g in group_by_iter] 
+        words_to_check = self.recursive_duplicate_search('', seq)
         return words_to_check
         
     def match(self, query):
-        #return all uniquified word char
-        #then give th result to the equal matcher
-        words_to_check = self.get_words_to_check(query)
+        words_to_check = self.get_words_to_check(query)        
         #check every item in words_to_check
         return self.equal_matcher.match_in(words_to_check)
         
-         
 class IncorrectVowelsMatcher(BaseWordMatcher):
     """
     use case "weke" => "wake"
@@ -157,8 +158,7 @@ class WordChecker(object):
     def __init__(self):
         super(WordChecker, self).__init__()
         #start to load the dictionay
-        self.word_set = set()
-        self.load_dictionary()
+        self.word_set = self.load_dictionary()
         #we declare here the ordered matchers object to use
         matchers_class = (
             EqualMatcher, 
@@ -179,12 +179,13 @@ class WordChecker(object):
         """
         sting_path = path or "/usr/share/dict/words"
         words_list_path = os.path.abspath(sting_path)
+        words_set = set()
         with open(words_list_path,"r") as f:
             for line in f.xreadlines():
                 #clean line and add to the set
                 line = line.replace('\n', '').strip().lower().decode('utf-8')
-                self.word_set.add(line)
-        return self.word_set
+                words_set.add(line)
+        return words_set
         
     def run(self):
         """the method run by the main"""
@@ -192,13 +193,14 @@ class WordChecker(object):
             query_str = raw_input('> ')
             #cleanify the input_string and decode in utf-8 to avoid error with non-utf-8 char
             query_str = query_str.strip().lower()
-            query = query_str
+            query = query_str.decode('utf-8')
             result = None
             #check if the word was already set in the cache
             if not query in self.match_cache:
                 #now we will use our matchers strategies to find the word
                 for matcher in self.matchers:
                     result = matcher.match(query)
+                    # print 'result %s matcher %s' %(result, matcher.__class__)
                     if result:
                         break
             else:
@@ -206,7 +208,7 @@ class WordChecker(object):
             if result:
                 print result
             else:
-                print "%s NO SUGGESTION" 
+                print "%s NO SUGGESTION" % query
             #set the word in cache
             self.match_cache[query] = result
                  
