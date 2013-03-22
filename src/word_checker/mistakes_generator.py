@@ -8,7 +8,6 @@
 # 
 
 import sys
-import time
 import random
 import word_checker
 
@@ -60,9 +59,9 @@ class IncorrectVowelsMistaker(object):
     """
     A incorrrect vowels mistaker class
     vowels http://simple.wikipedia.org/wiki/Vowel
-    this matcher concider 'y' as vowel
+    this matcher don't concider 'y' as vowel
     """
-    vowels = (u'a', u'e', u'i', u'o', u'u', u'y')
+    vowels = (u'a', u'e', u'i', u'o', u'u')
     max_change_in_same_word = 3
     
     def mistake(self, word):
@@ -79,8 +78,6 @@ class IncorrectVowelsMistaker(object):
                     word_list[index] = new_vowel
                     change_counter+=1
                 if change_counter >= self.max_change_in_same_word:
-                    import ipdb
-                    ipdb.set_trace()
                     break
                 
         return u"".join(word_list)
@@ -120,9 +117,9 @@ class MistakesGenerator(object):
         self.word_set = self.word_chkr.load_dictionary()
         #we declare here a list of mistaker class
         mistaker_class = (
-            # CaseMistaker,
-            # RepeatedLettersMistaker,
-            # IncorrectVowelsMistaker,
+            CaseMistaker,
+            RepeatedLettersMistaker,
+            IncorrectVowelsMistaker,
             RepeatedLettersAndIncorrectVowelsAnIncorectCaseMistaker,
         )
         #load the matchers objects into the matchers property
@@ -143,12 +140,12 @@ class MistakesGenerator(object):
         while True:
             for word in self.word_set:
                 #first tour we send only non-mistaken words
-                # if index < 1:
-                #     print word
-                # else:
-                #     print self.mistake_word(word)
+                if index < 1:
+                    print word
+                else:
+                    print self.mistake_word(word)
                 #print self.mistake_word(word)
-                print "%s %s" %(word, self.mistake_word(word)) 
+                #print "%s %s" %(word, self.mistake_word(word)) 
             index += 1   
 
 if __name__ == "__main__":

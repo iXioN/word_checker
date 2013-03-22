@@ -12,9 +12,7 @@
 
 import os.path
 import sys
-import re
 import itertools
-import time
 
 
 class BaseWordMatcher(object):
@@ -94,18 +92,18 @@ class RepeatedLettersMatcher(BaseWordMatcher):
         return words_to_check
         
     def match(self, query):
-        words_to_check = self.get_words_to_check(query)        
+        words_to_check = self.get_words_to_check(query)
         #check every item in words_to_check
         return self.equal_matcher.match_in(words_to_check)
-    
-        
+
+
 class IncorrectVowelsMatcher(BaseWordMatcher):
     """
     use case "weke" => "wake"
     vowels http://simple.wikipedia.org/wiki/Vowel
-    this matcher concider 'y' as vowel
+    this matcher don't concider 'y' as vowel
     """
-    vowels = (u'a', u'e', u'i', u'o', u'u', u'y')
+    vowels = (u'a', u'e', u'i', u'o', u'u')
     
     def __init__(self, word_set):
         """add EqualMatcher instance as property"""
@@ -122,11 +120,11 @@ class IncorrectVowelsMatcher(BaseWordMatcher):
         #search the vowels and replace them by a format marker like {0} {1}...
         for char_index, char in enumerate(query):
            if char in self.vowels:
-               list_query[char_index]="{%s}" % (vowel_index, )#replace the vowel by a marquer format
+               list_query[char_index]="{}"#replace the vowel by a marquer format
                vowel_index+=1
         query = u"".join(list_query)#now the query have a format marker instead vowels
-        words_to_check = list()
         #iter over the product of vowel_index * vowels and apply to the format
+        #this product can be very very huge dependint on the number of vowels
         for possible_vowels in itertools.product(self.vowels, repeat=vowel_index):
            word  = query.format(*possible_vowels)
            yield word
@@ -169,7 +167,6 @@ class RepeatedLettersAndIncorrectVowelsMatcher(BaseWordMatcher):
                 if match:
                     return match
                 already_seen.add(word)
-                #words.add(word)
                 for word_changed_vowels in self.incorrect_vowels_matcher.get_word_to_check(word):
                     if word_changed_vowels not in already_seen:
                         match = self.equal_matcher.match(word_changed_vowels)
@@ -194,8 +191,8 @@ class WordChecker(object):
         #we declare here the ordered matchers object to use
         matchers_class = (
             EqualMatcher, 
-            RepeatedLettersMatcher, 
-            IncorrectVowelsMatcher, 
+            #RepeatedLettersMatcher, #used by the RepeatedLettersAndIncorrectVowelsMatcher
+            #IncorrectVowelsMatcher, #used by the RepeatedLettersAndIncorrectVowelsMatcher
             RepeatedLettersAndIncorrectVowelsMatcher,
         )
         #load the matchers objects into the matchers property
