@@ -25,9 +25,9 @@ class MistakesGenerator(object):
         """
         iterate over the word_set, apply a mistake transformer and print the word
         """
-       while True:
-        for word in self.word_set:
-            print word                
+        while True:
+            for word in self.word_set:
+                print word                
 
 if __name__ == "__main__":
     try:
