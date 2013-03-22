@@ -22,7 +22,7 @@ class CaseMistaker(object):
         """
         return word
         
-class CaseWordistaker(object):
+class CaseMistaker(object):
     """A Case mistaker class"""
     def mistake(self, word):
         """
@@ -32,9 +32,9 @@ class CaseWordistaker(object):
         return new_word
         
 class RepeatedLettersMistaker(object):
-    """A Case mistaker class"""
+    """A letter repeater mistaker class"""
     max_same_duplicate_letter = 3
-    max_duplicate_in_same_word = 3
+    max_change_in_same_word = 3
     #the english allowed repeted char, lower the string is, faster the computation is
     
     def mistake(self, word):
@@ -42,15 +42,66 @@ class RepeatedLettersMistaker(object):
         add duplicate letter randommly in word
         """
         word_list = list(word)
-        duplicate_counter = 0
+        change_counter = 0
         for index, char in enumerate(word):
             new_char = random.choice([char*random.randint(1, self.max_same_duplicate_letter), char])
             if new_char != char:
                 word_list[index] = new_char
-            if duplicate_counter >= self.max_duplicate_in_same_word:
+                change_counter+=1
+            if change_counter >= self.max_change_in_same_word:
                 break
         return u"".join(word_list)
 
+class IncorrectVowelsMistaker(object):
+    """
+    A incorrrect vowels mistaker class
+    vowels http://simple.wikipedia.org/wiki/Vowel
+    this matcher concider 'y' as vowel
+    """
+    vowels = (u'a', u'e', u'i', u'o', u'u', u'y')
+    max_change_in_same_word = 3
+    
+    def mistake(self, word):
+        """
+        change some vowels in word 
+        """
+        word_list = list(word)
+        change_counter = 0
+        for index, char in enumerate(word):
+            #we find a vowels, replace it with another
+            if char in self.vowels:                
+                new_vowel = random.choice(self.vowels)
+                if new_vowel != char:
+                    word_list[index] = new_vowel
+                    change_counter+=1
+                if change_counter >= self.max_change_in_same_word:
+                    break
+                
+        return u"".join(word_list)
+
+class RepeatedLettersAndIncorrectVowelsAnIncorectCaseMistaker(object):
+    """
+    repeated letters, incorect vowels and case word is generate for the original one
+    """
+    def __init__(self):
+        """add EqualMatcher instance as property"""
+        super(RepeatedLettersAndIncorrectVowelsAnIncorectCaseMistaker, self).__init__()
+        #we declare here a list of mistaker class
+        mistaker_class = (
+            IncorrectVowelsMistaker,
+            RepeatedLettersMistaker,
+            CaseMistaker,
+        )
+        #load the matchers objects into the matchers property
+        self.mistakers = [mistaker_cls() for mistaker_cls in mistaker_class]
+        
+    def mistake(self, word):
+        mistaked_word = word
+        for mistaker in self.mistakers:
+           mistaked_word = mistaker.mistake(mistaked_word)
+          
+        return mistaked_word
+    
 class MistakesGenerator(object):
     """
     this class load the word file with word_checker.load_dictionary() methode
@@ -60,11 +111,12 @@ class MistakesGenerator(object):
         super(MistakesGenerator, self).__init__()
         self.word_chkr = word_checker.WordChecker()
         self.word_set = self.word_chkr.load_dictionary()
-        #we declare here a set of mistaker class
+        #we declare here a list of mistaker class
         mistaker_class = (
-            CaseMistaker, 
-            CaseWordistaker,
-            RepeatedLettersMistaker,
+            # CaseMistaker,
+            # RepeatedLettersMistaker,
+            # IncorrectVowelsMistaker,
+            RepeatedLettersAndIncorrectVowelsAnIncorectCaseMistaker,
         )
         #load the matchers objects into the matchers property
         self.mistakers = [mistaker_cls() for mistaker_cls in mistaker_class]
@@ -88,6 +140,7 @@ class MistakesGenerator(object):
                     print word
                 else:
                     print self.mistake_word(word)
+                #print self.mistake_word(word)
                 #print "%s %s" %(word, self.mistake_word(word)) 
             index += 1   
 
@@ -96,4 +149,4 @@ if __name__ == "__main__":
         mistakes_generator = MistakesGenerator()
         mistakes_generator.run()
     except (KeyboardInterrupt, SystemExit):
-        pass #shutdown silently
+        sys.exit(1)#shutdown silently

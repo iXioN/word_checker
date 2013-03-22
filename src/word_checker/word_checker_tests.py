@@ -50,7 +50,7 @@ class SimpleCheckerTestCase(unittest.TestCase):
         }
         for query in matching_dict.iterkeys():
             self.assertEquals(matcher.match(query), matching_dict.get(query, None))
-
+        
     def test_incorrect_vowels_matcher(self):
         """
         given any string in the dict
@@ -78,7 +78,7 @@ class SimpleCheckerTestCase(unittest.TestCase):
         }
         for query in matching_dict.iterkeys():
             self.assertEquals(matcher.match(query), matching_dict.get(query, None))
-        
+    #     
     
 if __name__ == '__main__':
     unittest.main()

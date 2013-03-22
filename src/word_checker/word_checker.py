@@ -14,9 +14,12 @@ import os.path
 import sys
 import re
 import itertools
+import time
+
 
 class BaseWordMatcher(object):
     """A base matcher class"""
+    
     def __init__(self, word_set):
         super(BaseWordMatcher, self).__init__()
         self.word_set = word_set
@@ -30,6 +33,10 @@ class BaseWordMatcher(object):
 
 
 class EqualMatcher(BaseWordMatcher):
+    """
+    this match match direct equality in query and dict
+    """
+    
     def match(self, query):
         return query if query in self.word_set else None
         
@@ -38,12 +45,18 @@ class EqualMatcher(BaseWordMatcher):
         match each item in the iterable
         exit on first find
         """
+        # iter_set = set(iterable)
+        # results = self.word_set.intersection(iter_set)
+        # if any(results):
+        #     return list(results)[0]
+        # return None
+        #cf set intersection is 2x slower than iterate over posibilities
         result = None
         for word in iterable:
             finded_word = self.match(word)
             if finded_word:
                 result = finded_word
-                break
+                break        
         return result
     
 
@@ -51,6 +64,7 @@ class RepeatedLettersMatcher(BaseWordMatcher):
     """
     use case jjoobbb" => "job"
     """
+    
     def __init__(self, word_set):
         """add EqualMatcher instance as property"""
         super(RepeatedLettersMatcher, self).__init__(word_set)
@@ -83,6 +97,7 @@ class RepeatedLettersMatcher(BaseWordMatcher):
         words_to_check = self.get_words_to_check(query)        
         #check every item in words_to_check
         return self.equal_matcher.match_in(words_to_check)
+    
         
 class IncorrectVowelsMatcher(BaseWordMatcher):
     """
@@ -97,32 +112,39 @@ class IncorrectVowelsMatcher(BaseWordMatcher):
         super(IncorrectVowelsMatcher, self).__init__(word_set)
         self.equal_matcher = EqualMatcher(word_set)
     
-    def get_words_to_check(self, query):
+    def get_word_to_check(self, query):
         """
-        return a list of words derived from the query
-        
+        is a generator that yield possibilities one by one
         I use the combiantion of an itertoolt product() and the python string format to generate the word list
         """
         list_query = list(query)
         vowel_index = 0
         #search the vowels and replace them by a format marker like {0} {1}...
         for char_index, char in enumerate(query):
-            if char in self.vowels:
-                list_query[char_index]="{%s}" % (vowel_index, )#replace the vowel by a marquer format
-                vowel_index+=1
+           if char in self.vowels:
+               list_query[char_index]="{%s}" % (vowel_index, )#replace the vowel by a marquer format
+               vowel_index+=1
         query = u"".join(list_query)#now the query have a format marker instead vowels
         words_to_check = list()
         #iter over the product of vowel_index * vowels and apply to the format
         for possible_vowels in itertools.product(self.vowels, repeat=vowel_index):
-            word  = query.format(*possible_vowels)
-            words_to_check.append(word)
-
-        return words_to_check
+           word  = query.format(*possible_vowels)
+           yield word
+           
+    def get_words_to_check(self, query):
+        """
+        return a list of words derived from the query
+        use the full list of get_word_to_check
+        """
+        return tuple(self.get_word_to_check(query))
         
     def match(self, query):
-        words_to_check = self.get_words_to_check(query)
-        #check every item in words_to_check
-        return self.equal_matcher.match_in(words_to_check)
+        #get_word_to_check is an generator, we iteratate over the posibilies until we found the match, else return none
+        for word in self.get_word_to_check(query): 
+           match = self.equal_matcher.match(word)
+           if match:
+              return match
+        return None
 
 
 class RepeatedLettersAndIncorrectVowelsMatcher(BaseWordMatcher):
@@ -130,6 +152,7 @@ class RepeatedLettersAndIncorrectVowelsMatcher(BaseWordMatcher):
     use case "CUNsperrICY" => "conspiracy" or "peepple" => "sheeple"
     worst case
     """
+    
     def __init__(self, word_set):
         """add matchers instances as property"""
         super(RepeatedLettersAndIncorrectVowelsMatcher, self).__init__(word_set)
@@ -138,14 +161,27 @@ class RepeatedLettersAndIncorrectVowelsMatcher(BaseWordMatcher):
         self.incorrect_vowels_matcher = IncorrectVowelsMatcher(word_set)
         
     def match(self, query):        
-        words = set()
         first_words = self.repeated_letter_matcher.get_words_to_check(query)
+        already_seen = set()
         for word in first_words:
-            words.add(word)
-            incorrect_vowels_words = self.incorrect_vowels_matcher.get_words_to_check(word)
-            words |= set(tuple(incorrect_vowels_words)) #merge set
+            if word not in already_seen:
+                match = self.equal_matcher.match(word)
+                if match:
+                    return match
+                already_seen.add(word)
+                #words.add(word)
+                for word_changed_vowels in self.incorrect_vowels_matcher.get_word_to_check(word):
+                    if word_changed_vowels not in already_seen:
+                        match = self.equal_matcher.match(word_changed_vowels)
+                        if match:
+                            return match
+                        already_seen.add(word_changed_vowels)
+                
+            #incorrect_vowels_words = self.incorrect_vowels_matcher.get_words_to_check(word)
+            
+            #words |= set(tuple(incorrect_vowels_words)) #merge set
         #check every item in words_to_check
-        return self.equal_matcher.match_in(words)
+        return None
 
 
 class WordChecker(object):
@@ -155,16 +191,17 @@ class WordChecker(object):
         load the word file  with load_dictionary() methode
         run the matching promb with run() methode 
     """
+    
     def __init__(self):
         super(WordChecker, self).__init__()
         #start to load the dictionay
         self.word_set = self.load_dictionary()
         #we declare here the ordered matchers object to use
         matchers_class = (
-            EqualMatcher, 
-            RepeatedLettersMatcher, 
-            IncorrectVowelsMatcher, 
-            RepeatedLettersAndIncorrectVowelsMatcher
+            # EqualMatcher, 
+            # RepeatedLettersMatcher, 
+            # IncorrectVowelsMatcher, 
+            RepeatedLettersAndIncorrectVowelsMatcher,
         )
         #load the matchers objects into the matchers property
         self.matchers = [matcher_cls(self.word_set) for matcher_cls in matchers_class]
@@ -211,6 +248,7 @@ class WordChecker(object):
                 print "%s NO SUGGESTION" % query
             #set the word in cache
             self.match_cache[query] = result
+               
                  
 if __name__ == "__main__":
     try:
@@ -218,4 +256,3 @@ if __name__ == "__main__":
         word_checker.run()
     except (KeyboardInterrupt, SystemExit):
         sys.exit(1)
-        print "\ngoodbye"
