@@ -13,6 +13,7 @@
 import os.path
 import sys
 import itertools
+import gc
 
 
 class BaseWordMatcher(object):
@@ -148,9 +149,7 @@ class IncorrectVowelsMatcher(BaseWordMatcher):
 class RepeatedLettersAndIncorrectVowelsMatcher(BaseWordMatcher):
     """
     use case "CUNsperrICY" => "conspiracy" or "peepple" => "sheeple"
-    worst case
     """
-    
     def __init__(self, word_set):
         """add matchers instances as property"""
         super(RepeatedLettersAndIncorrectVowelsMatcher, self).__init__(word_set)
@@ -160,19 +159,14 @@ class RepeatedLettersAndIncorrectVowelsMatcher(BaseWordMatcher):
         
     def match(self, query):        
         first_words = self.repeated_letter_matcher.get_words_to_check(query)
-        already_seen = set()
         for word in first_words:
-            if word not in already_seen:
-                match = self.equal_matcher.match(word)
+            match = self.equal_matcher.match(word)
+            if match:
+                return match
+            for word_changed_vowels in self.incorrect_vowels_matcher.get_word_to_check(word):
+                match = self.equal_matcher.match(word_changed_vowels)
                 if match:
                     return match
-                already_seen.add(word)
-                for word_changed_vowels in self.incorrect_vowels_matcher.get_word_to_check(word):
-                    if word_changed_vowels not in already_seen:
-                        match = self.equal_matcher.match(word_changed_vowels)
-                        if match:
-                            return match
-                        already_seen.add(word_changed_vowels)
         return None
 
 
@@ -240,7 +234,7 @@ class WordChecker(object):
                 print "%s NO SUGGESTION" % query
             #set the word in cache
             self.match_cache[query] = result
-               
+            gc.collect()
                  
 if __name__ == "__main__":
     try:
