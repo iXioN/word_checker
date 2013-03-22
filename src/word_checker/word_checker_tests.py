@@ -29,7 +29,7 @@ class SimpleCheckerTestCase(unittest.TestCase):
     def test_equal_matcher_fail(self):
         """
         given any set of word
-        when i try to match difefrent word which are not in dict set with the equal matcher
+        when i try to match different word which are not in dict set with the equal matcher
         then i get the None
         """
         equal_matcher = word_checker.EqualMatcher(self.word_set)
@@ -60,7 +60,7 @@ class SimpleCheckerTestCase(unittest.TestCase):
         matcher = word_checker.IncorrectVowelsMatcher(self.word_set)
         matching_dict = {
                 'weke':'waka',
-                'ceisy':'cause', 
+                'ceise':'cause', 
         }
         for query in matching_dict.iterkeys():
             self.assertEquals(matcher.match(query), matching_dict.get(query, None))
@@ -79,7 +79,7 @@ class SimpleCheckerTestCase(unittest.TestCase):
         }
         for query in matching_dict.iterkeys():
             self.assertEquals(matcher.match(query), matching_dict.get(query, None))
-    #     
+
     
 if __name__ == '__main__':
     unittest.main()

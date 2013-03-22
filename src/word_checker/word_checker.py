@@ -13,7 +13,7 @@
 import os.path
 import sys
 import itertools
-import gc
+from optparse import OptionParser
 
 
 class BaseWordMatcher(object):
@@ -139,10 +139,10 @@ class IncorrectVowelsMatcher(BaseWordMatcher):
         
     def match(self, query):
         #get_word_to_check is an generator, we iteratate over the posibilies until we found the match, else return none
-        for word in self.get_word_to_check(query): 
-           match = self.equal_matcher.match(word)
-           if match:
-              return match
+        for word in self.get_word_to_check(query):
+            match = self.equal_matcher.match(word)
+            if match:
+                return match
         return None
 
 
@@ -163,6 +163,9 @@ class RepeatedLettersAndIncorrectVowelsMatcher(BaseWordMatcher):
             match = self.equal_matcher.match(word)
             if match:
                 return match
+            #looping over the vowels swap word must be more efficient than a set intersection wich is 
+            #O(min(len(word_set), len(replaces_vowels)) and in worst case O(len(word_set) * len(replaces_vowels))
+            #in our case we are in a worst case at O(len(replaces_vowels))
             for word_changed_vowels in self.incorrect_vowels_matcher.get_word_to_check(word):
                 match = self.equal_matcher.match(word_changed_vowels)
                 if match:
@@ -178,15 +181,15 @@ class WordChecker(object):
         run the matching promb with run() methode 
     """
     
-    def __init__(self):
+    def __init__(self, word_dict_path=None):
         super(WordChecker, self).__init__()
         #start to load the dictionay
-        self.word_set = self.load_dictionary()
+        self.word_set = self.load_dictionary(word_dict_path)
         #we declare here the ordered matchers object to use
         matchers_class = (
             EqualMatcher, 
-            #RepeatedLettersMatcher, #used by the RepeatedLettersAndIncorrectVowelsMatcher
-            #IncorrectVowelsMatcher, #used by the RepeatedLettersAndIncorrectVowelsMatcher
+            RepeatedLettersMatcher, 
+            #IncorrectVowelsMatcher, #remove to avoid twiced huge work, this check is done one the next matcher
             RepeatedLettersAndIncorrectVowelsMatcher,
         )
         #load the matchers objects into the matchers property
@@ -223,7 +226,6 @@ class WordChecker(object):
                 #now we will use our matchers strategies to find the word
                 for matcher in self.matchers:
                     result = matcher.match(query)
-                    # print 'result %s matcher %s' %(result, matcher.__class__)
                     if result:
                         break
             else:
@@ -234,10 +236,15 @@ class WordChecker(object):
                 print "%s NO SUGGESTION" % query
             #set the word in cache
             self.match_cache[query] = result
-            gc.collect()
                  
 if __name__ == "__main__":
     try:
+        parser = OptionParser(usage="usage: %prog filename",
+                              version="%prog 0.1")
+        parser.add_option("-f", "--file", dest="word_dict_path",
+                  help="word dictionary path", metavar="FILE", default="/usr/share/dict/words")
+        (options, args) = parser.parse_args()
+        word_dict_path = options.word_dict_path
         word_checker = WordChecker()
         word_checker.run()
     except (KeyboardInterrupt, SystemExit):

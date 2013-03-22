@@ -9,6 +9,7 @@
 
 import sys
 import random
+from optparse import OptionParser
 import word_checker
 
 
@@ -122,10 +123,10 @@ class MistakesGenerator(object):
     this class load the word file with word_checker.load_dictionary() methode
     then return mustakes work based on random dictionary words
     """
-    def __init__(self):
+    def __init__(self, word_dict_path=None):
         super(MistakesGenerator, self).__init__()
         self.word_chkr = word_checker.WordChecker()
-        self.word_set = self.word_chkr.load_dictionary()
+        self.word_set = self.word_chkr.load_dictionary(word_dict_path)
         #we declare here a list of mistaker class with 
         #(class, distribution wheight)
         self.mistakers = (
@@ -134,8 +135,6 @@ class MistakesGenerator(object):
             (IncorrectVowelsMistaker(), 20),
             (RepeatedLettersAndIncorrectVowelsAnIncorectCaseMistaker(), 10),
         )
-        #load the matchers objects into the matchers property
-        #self.mistakers = [class_and_weight[0]() for class_and_weight in mistaker_class]
     
     def mistake_word(self, word):
         """take a word and return the mistaken word"""
@@ -152,17 +151,21 @@ class MistakesGenerator(object):
         while True:
             for word in self.word_set:
                 #first tour we send only non-mistaken words
-                # if index < 1:
-                #     print word
-                # else:
-                #     print self.mistake_word(word)
-                print self.mistake_word(word)
-                #print "%s %s" %(word, self.mistake_word(word)) 
+                if index < 1:
+                    print word
+                else:
+                    print self.mistake_word(word)
             index += 1   
 
 if __name__ == "__main__":
     try:
-        mistakes_generator = MistakesGenerator()
+        parser = OptionParser(usage="usage: %prog filename",
+                              version="%prog 0.1")
+        parser.add_option("-f", "--file", dest="word_dict_path",
+                  help="word dictionary path", metavar="FILE", default="/usr/share/dict/words")
+        (options, args) = parser.parse_args()
+        word_dict_path = options.word_dict_path
+        mistakes_generator = MistakesGenerator(word_dict_path)
         mistakes_generator.run()
     except (KeyboardInterrupt, SystemExit):
         sys.exit(1)#shutdown silently
