@@ -182,7 +182,7 @@ class WordChecker(object):
         with open(words_list_path,"r") as f:
             for line in f.xreadlines():
                 #clean line and add to the set
-                line = line.replace('\n', '').strip().decode('utf-8')
+                line = line.replace('\n', '').strip().lower().decode('utf-8')
                 self.word_set.add(line)
         return self.word_set
         
@@ -191,8 +191,8 @@ class WordChecker(object):
         while True:
             query_str = raw_input('> ')
             #cleanify the input_string and decode in utf-8 to avoid error with non-utf-8 char
-            query_str = query_str.replace('\n', '').strip().lower()
-            query = query_str.decode('utf-8')
+            query_str = query_str.strip().lower()
+            query = query_str
             result = None
             #check if the word was already set in the cache
             if not query in self.match_cache:
@@ -206,7 +206,7 @@ class WordChecker(object):
             if result:
                 print result
             else:
-                print "NO SUGGESTION"
+                print "%s NO SUGGESTION" 
             #set the word in cache
             self.match_cache[query] = result
                  
