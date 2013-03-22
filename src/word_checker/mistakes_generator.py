@@ -105,7 +105,18 @@ class RepeatedLettersAndIncorrectVowelsAnIncorectCaseMistaker(object):
            mistaked_word = mistaker.mistake(mistaked_word)
           
         return mistaked_word
-    
+      
+#an weighted choice implementation  
+def weighted_choice(choices):
+    total = sum(w for c, w in choices)
+    r = random.uniform(0, total)
+    upto = 0
+    for c, w in choices:
+        if upto + w > r:
+            return c
+        upto += w
+    assert False, "Shouldn't get here"
+   
 class MistakesGenerator(object):
     """
     this class load the word file with word_checker.load_dictionary() methode
@@ -115,20 +126,21 @@ class MistakesGenerator(object):
         super(MistakesGenerator, self).__init__()
         self.word_chkr = word_checker.WordChecker()
         self.word_set = self.word_chkr.load_dictionary()
-        #we declare here a list of mistaker class
-        mistaker_class = (
-            CaseMistaker,
-            RepeatedLettersMistaker,
-            IncorrectVowelsMistaker,
-            RepeatedLettersAndIncorrectVowelsAnIncorectCaseMistaker,
+        #we declare here a list of mistaker class with 
+        #(class, distribution wheight)
+        self.mistakers = (
+            (CaseMistaker(), 70),
+            (RepeatedLettersMistaker(), 50),
+            (IncorrectVowelsMistaker(), 20),
+            (RepeatedLettersAndIncorrectVowelsAnIncorectCaseMistaker(), 10),
         )
         #load the matchers objects into the matchers property
-        self.mistakers = [mistaker_cls() for mistaker_cls in mistaker_class]
+        #self.mistakers = [class_and_weight[0]() for class_and_weight in mistaker_class]
     
     def mistake_word(self, word):
         """take a word and return the mistaken word"""
         if self.mistakers:
-            mistaker = random.choice(self.mistakers)
+            mistaker = weighted_choice(self.mistakers)
             return mistaker.mistake(word)
         return word
         
@@ -140,11 +152,11 @@ class MistakesGenerator(object):
         while True:
             for word in self.word_set:
                 #first tour we send only non-mistaken words
-                if index < 1:
-                    print word
-                else:
-                    print self.mistake_word(word)
-                #print self.mistake_word(word)
+                # if index < 1:
+                #     print word
+                # else:
+                #     print self.mistake_word(word)
+                print self.mistake_word(word)
                 #print "%s %s" %(word, self.mistake_word(word)) 
             index += 1   
 
